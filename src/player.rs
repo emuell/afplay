@@ -45,7 +45,7 @@ pub struct AudioFilePlayer {
 /// public interface
 impl AudioFilePlayer {
     const DEFAULT_STOP_FADEOUT_SECS: f32 = 0.05;
-    const DEFAULT_RESAMPLING_QUALITY: ResamplingQuality = ResamplingQuality::SincFastest;
+    const DEFAULT_RESAMPLING_QUALITY: ResamplingQuality = ResamplingQuality::Linear;
 
     pub fn new(
         sink: DefaultAudioSink,

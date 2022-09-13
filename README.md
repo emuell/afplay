@@ -12,7 +12,7 @@ It was originally developed and is used in the [AFEC-Explorer](https://github.co
 - Play, stop, mix and monitor playback of custom *synth tones* thanks to [dasp](https://github.com/RustAudio/dasp) (can be optionally enabled).
 - Audio output for Windows, macOS and Linux is handled via [cpal](https://github.com/RustAudio/cpal) or [cubeb](https://github.com/mozilla/cubeb).
 - Decodes and thus plays back *most common audio file formats*, thanks to [Symphonia](https://github.com/pdeljanov/Symphonia).
-- Files are *automatically resampled* and *channel mapped* to the audio output's signal specs, thanks to [libsamplerate](https://github.com/RamiHg/rust-libsamplerate).
+- Files are *automatically resampled* and *channel mapped* to the audio output's signal specs, thanks to [rubato](https://github.com/HEnquist/rubato).
 - File and synth tone playback stop commands are applied via short volume fades to *avoid clicks* (de-clicking for seeking is a TODO)
 
 ### Examples
