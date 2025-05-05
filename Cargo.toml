@@ -7,8 +7,10 @@ authors = ["Eduard Müller <mail@emuell.net>"]
 exclude = ["assets", "examples"]
 categories = ["audio", "synth", "music", "gamedev"]
 
+[lib]
+crate-type = ["cdylib", "rlib"]
+
 [dependencies]
-# required
 log = { version = "^0.4", features = [
     "max_level_debug",
     "release_max_level_info",
@@ -24,7 +26,8 @@ audio_thread_priority = { version = "^0.32", default-features = false }
 rubato = { version = "^0.15" }
 rb = { version = "^0.4" }
 symphonia = { version = "^0.5", features = ["aac", "alac", "mp3", "isomp4"] }
-# optional
+
+# Optional dependencies
 assert_no_alloc = { version = "^1.1", features = [
     "warn_debug",
 ], optional = true }
@@ -33,10 +36,27 @@ fundsp = { version = "^0.17", optional = true }
 cubeb = { version = "^0.13", optional = true }
 cpal = { version = "^0.15", optional = true, features = ["jack", "asio"] }
 
+# Windows dependencies
 [target.'cfg(windows)'.dependencies]
 windows = { version = "^0.56", features = [
     "Win32_System_Com",
 ], optional = true }
+
+# Web dependencies
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+wasm-bindgen = "0.2"
+wasm-bindgen-futures = "0.4.50"
+js-sys = "0.3"
+web-sys = { version = "0.3", features = [
+    "AudioContext", 
+    "AudioBuffer", 
+    "AudioBufferSourceNode",
+    "AudioDestinationNode",
+    "AudioNode",
+    "Window",
+    "Response",
+    "console"
+]}
 
 [dev-dependencies]
 device_query = { version = "^2.0" }

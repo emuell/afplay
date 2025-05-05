@@ -12,8 +12,9 @@ pub enum Error {
     AudioDecodingError(Box<dyn error::Error + Send + Sync>),
     AudioOutputError(Box<dyn error::Error + Send + Sync>),
     ResamplingError(Box<dyn error::Error + Send + Sync>),
-    IoError(io::Error),
     ParameterError(String),
+    IoError(io::Error),
+    JsError(String),
     SendError,
 }
 
@@ -28,8 +29,9 @@ impl fmt::Display for Error {
             Self::AudioDecodingError(err)
             | Self::AudioOutputError(err)
             | Self::ResamplingError(err) => err.fmt(f),
-            Self::IoError(err) => err.fmt(f),
             Self::ParameterError(str) => write!(f, "Invalid parameter: {str}"),
+            Self::IoError(err) => err.fmt(f),
+            Self::JsError(str) => write!(f, "Browser error: {str}"),
             Self::SendError => write!(f, "Failed to send into a channel"),
         }
     }

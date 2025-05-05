@@ -27,7 +27,7 @@
 //! ### See Also
 //!
 //! - [afwaveplot](https://github.com/emuell/afwaveplot):
-//!  to generate **waveform plots** from audio file paths or raw sample buffers.
+//!   to generate **waveform plots** from audio file paths or raw sample buffers.
 //! - [afseq](https://github.com/emuell/afseq):
 //!   experimental **algorithmic composing** framework, which uses afplay as sample player.
 //!
@@ -260,9 +260,9 @@
 //!   - [SteamedFileSource](`source::file::streamed::StreamedFileSource`) streams and decodes audio files on the fly.
 //! - [SynthSource](`source::synth::SynthSource`)
 //!   - [DaspSynthSource](`source::synth::dasp::DaspSynthSource`) plays a custom
-//! [dasp](https://github.com/RustAudio/dasp) signal as AudioSource.
+//!     [dasp](https://github.com/RustAudio/dasp) signal as AudioSource.
 //!   - [FunDspSynthSource](`source::synth::fundsp::FunDspSynthSource`) plays a custom
-//! [funDSP](https://github.com/SamiPerttu/fundsp/) unit as AudioSource.
+//!     [funDSP](https://github.com/SamiPerttu/fundsp/) unit as AudioSource.
 //! - [EmptySource](`source::empty::EmptySource`) produces an empty buffer.
 //!
 //! #### Sources which modify signals of other sources:
@@ -295,6 +295,10 @@ mod player;
 // public
 pub mod source;
 pub mod utils;
+
+// private (public interface exported as js)
+#[cfg(target_arch = "wasm32")]
+mod web;
 
 // re-exports
 pub use error::Error;
