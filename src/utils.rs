@@ -58,6 +58,16 @@ pub fn db_to_linear(value: f32) -> f32 {
 
 // -------------------------------------------------------------------------------------------------
 
+/// Convert a -1..=1 ranged pan factor to exp scaled L/R channel volume factors
+pub fn panning_factors(pan_factor: f32) -> (f32, f32) {
+    let normalized = ((pan_factor + 1.0) / 2.0).clamp(0.0, 1.0); // -1..=1 to 0..=1
+    let pan_l = (1.0 - normalized).powf(0.5) * 1.0 / 0.70710677;
+    let pan_r = normalized.powf(0.5) * 1.0 / 0.70710677;
+    (pan_l, pan_r)
+}
+
+// -------------------------------------------------------------------------------------------------
+
 /// Calculate playback speed from a MIDI note, using middle C (note number 60) as base note.
 pub fn speed_from_note(midi_note: u8) -> f64 {
     // Middle Note C6 = MIDI note 60
