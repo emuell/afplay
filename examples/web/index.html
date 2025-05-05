@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <title>afplay WASM Demo</title>
+    <style>
+        body {
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+        }
+
+        h1 {
+            color: #333;
+            text-align: center;
+        }
+
+        .controls {
+            background-color: #f5f5f5;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+
+        button {
+            background-color: #4CAF50;
+            border: none;
+            color: white;
+            padding: 10px 15px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 16px;
+            margin: 4px 2px;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        button:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+
+        input[type="file"] {
+            margin: 10px 0;
+        }
+
+        .url-input {
+            width: 80%;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+            border: 1px solid #ddd;
+        }
+
+        .status {
+            margin: 20px 0;
+            padding: 10px;
+            border-radius: 4px;
+        }
+
+        .log {
+            height: 200px;
+            overflow-y: auto;
+            background-color: #f9f9f9;
+            padding: 10px;
+            border: 1px solid #ddd;
+            font-family: monospace;
+            white-space: pre-wrap;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>afplay WASM Demo</h1>
+
+    <div class="controls">
+        <h2>Play Audio File</h2>
+        <input type="file" id="audioFile" accept="audio/*" />
+        <button id="playFileBtn" disabled>Play File</button>
+
+        <h2>Play from URL</h2>
+        <input type="text" id="audioUrl" class="url-input" placeholder="Enter audio URL"
+            value="http://localhost:8000/assets/Kalimba.mp3" />
+        <button id="playUrlBtn">Play from URL</button>
+
+        <button id="stopBtn">Stop All Audio</button>
+    </div>
+
+    <div id="status" class="status"></div>
+
+    <div class="log" id="log"></div>
+
+    <script type="module">
+        // Import the WebAssembly module
+        import init, { AFPlayer } from './output/afplay.js';
+
+        // Create logging helpers
+        function logMessage(message) {
+            const logElement = document.getElementById('log');
+            const timestamp = new Date().toLocaleTimeString();
+            logElement.innerHTML += `[${timestamp}] ${message}\n`;
+            logElement.scrollTop = logElement.scrollHeight;
+        }
+
+        function setStatus(message, isError = false) {
+            const statusElement = document.getElementById('status');
+            statusElement.textContent = message;
+            statusElement.style.backgroundColor = isError ? '#ffebee' : '#e8f5e9';
+            statusElement.style.color = isError ? '#c62828' : '#2e7d32';
+        }
+
+        // Load and instantiate the WASM module
+        try {
+            await init();
+            setStatus("WASM module loaded successfully");
+
+            // Initialize player
+            let player = new AFPlayer();
+
+            // Enable UI elements
+            document.getElementById('playUrlBtn').disabled = false;
+            document.getElementById('playFileBtn').disabled = false;
+            document.getElementById('stopBtn').disabled = false;
+
+            // Set up event listeners
+            document.getElementById('playUrlBtn').addEventListener('click', async () => {
+                const urlInput = document.getElementById('audioUrl');
+                const url = urlInput.value.trim();
+                if (!url) {
+                    setStatus("Please enter a valid URL", true);
+                    return;
+                }
+                try {
+                    setStatus("Loading audio from URL...");
+                    await player.play_from_url(url);
+                    setStatus("Playing audio from URL");
+                } catch (error) {
+                    setStatus(`Error playing from URL: ${error.message}`, true);
+                }
+            });
+
+            document.getElementById('audioFile').addEventListener('change', () => {
+                const fileInput = document.getElementById('audioFile');
+                if (fileInput.files.length > 0) {
+                    document.getElementById('playFileBtn').disabled = false;
+                } else {
+                    document.getElementById('playFileBtn').disabled = true;
+                }
+            });
+
+            document.getElementById('playFileBtn').addEventListener('click', async () => {
+                const fileInput = document.getElementById('audioFile');
+                if (fileInput.files.length === 0) {
+                    setStatus("Please select an audio file", true);
+                    return;
+                }
+                const file = fileInput.files[0];
+                try {
+                    setStatus(`Loading audio file: ${file.name}...`);
+                    const arrayBuffer = await file.arrayBuffer();
+                    await player.play_from_bytes(arrayBuffer);
+                    setStatus(`Playing audio file: ${file.name}`);
+                } catch (error) {
+                    setStatus(`Error playing file: ${error.message}`, true);
+                }
+            });
+
+            document.getElementById('stopBtn').addEventListener('click', () => {
+                try {
+                    player.stop_all();
+                    setStatus("All audio playback stopped");
+                } catch (error) {
+                    setStatus(`Error stopping playback: ${error.message}`, true);
+                }
+            });
+        } catch (error) {
+            setStatus(`Failed to load WASM module: ${error.message}`, true);
+            logMessage(`Error initializing: ${error.message}`);
+        }
+    </script>
+</body>
+
+</html>

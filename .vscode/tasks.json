@@ -4,12 +4,45 @@
 		{
 			"type": "cargo",
 			"command": "build",
-			"args": ["--features", "dasp-synth,fundsp-synth", "--example", "*"],
+			"args": [
+				"--features",
+				"dasp-synth,fundsp-synth",
+				"--example",
+				"*"
+			],
 			"problemMatcher": [
 				"$rustc"
 			],
 			"group": "build",
 			"label": "rust: cargo build"
-		}
+		},
+		{
+			"type": "shell",
+			"command": "wasm-pack",
+			"args": [
+				"build",
+				"--target",
+				"web"
+			],
+			"problemMatcher": [
+				"$rustc"
+			],
+			"group": "build",
+			"label": "rust: wasm-pack build"
+		},
+		{
+			"type": "shell",
+			"command": "wasm-bindgen",
+			"args": [
+				"target/wasm32-unknown-unknown/release/afplay.wasm",
+				"--out-dir",
+				"examples/web/output",
+				"--target",
+				"web"
+			],
+			"group": "build",
+			"dependsOn": "rust: wasm-pack build",
+			"label": "rust: wasm-bindgen"
+		},
 	]
 }
