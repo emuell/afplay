@@ -19,6 +19,7 @@ use crate::{
         buffer::TempBuffer,
         decoder::AudioDecoder,
         fader::{FaderState, VolumeFader},
+        panning_factors,
         resampler::{
             cubic::CubicResampler, rubato::RubatoResampler, AudioResampler, ResamplingSpecs,
         },
@@ -39,6 +40,7 @@ pub struct PreloadedFileSource {
     file_path: Arc<String>,
     volume: f32,
     volume_fader: VolumeFader,
+    panning: f32,
     fade_out_duration: Option<Duration>,
     repeat: usize,
     buffer: Arc<Vec<f32>>,
@@ -155,6 +157,7 @@ impl PreloadedFileSource {
 
         // copy remaining options which are applied while playback
         let volume = options.volume;
+        let panning = options.panning;
         let fade_out_duration = options.fade_out_duration;
         let playback_pos_emit_rate = options.playback_pos_emit_rate;
 
@@ -163,6 +166,7 @@ impl PreloadedFileSource {
             file_path: Arc::new(file_path.into()),
             volume,
             volume_fader,
+            panning,
             fade_out_duration,
             repeat: options.repeat,
             buffer,
@@ -205,6 +209,15 @@ impl PreloadedFileSource {
     /// Set a new  playback volume option
     pub fn set_volume(&mut self, volume: f32) {
         self.volume = volume
+    }
+
+    /// Access to the playback panning option
+    pub fn panning(&self) -> f32 {
+        self.panning
+    }
+    /// Set new playback panning option
+    pub fn set_panning(&mut self, panning: f32) {
+        self.panning = panning
     }
 
     /// Get sample rate of our raw preloaded file's buffer
@@ -302,7 +315,7 @@ impl AudioSource for PreloadedFileSource {
             return 0;
         }
 
-        // write from buffer at current position and apply volume, fadeout and repeats
+        // write from buffer at current position and apply volume, panning, fadeout and repeats
         let mut total_written = 0_usize;
         while total_written < output.len() {
             // write from resampled buffer into output and apply volume
@@ -335,6 +348,19 @@ impl AudioSource for PreloadedFileSource {
             if (self.volume - 1.0).abs() > 0.0001 {
                 for o in remaining_target.iter_mut() {
                     *o *= self.volume;
+                }
+            }
+
+            // apply panning (for stereo samples)
+            if self.panning.abs() > 0.0001 && self.buffer_channel_count >= 2 {
+                let (pan_l, pan_r) = panning_factors(self.panning);
+                for o in remaining_target.chunks_exact_mut(self.buffer_channel_count) {
+                    // SAFETY: 0,1 is inbounds because we are splitting exact and checking for
+                    // buffer_channel_count >= 2 above
+                    unsafe {
+                        *o.get_unchecked_mut(0) *= pan_l; // left
+                        *o.get_unchecked_mut(1) *= pan_r; // right
+                    }
                 }
             }
 
